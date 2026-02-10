@@ -2,6 +2,10 @@ import argparse
 
 
 def build_parser():
+    """
+    Creates and configures the command-line argument parser.
+    Defines all supported command-line options and arguments, including flags, defaults, and help text. 
+    """
     parser = argparse.ArgumentParser(
         prog = 'eureka_jwst_parallel',
     )

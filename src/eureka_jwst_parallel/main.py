@@ -16,6 +16,9 @@ def main():
     parser = build_parser()
     args = parser.parse_args()
     pipeline = PipelineConfig(args)
+    if pipeline.high_cadence:
+        pipeline.high_cadence_settings()
+    pipeline.configure_directories()
     pipeline.print_pipeline_setup()
 
 
