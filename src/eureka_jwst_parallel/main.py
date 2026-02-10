@@ -1,6 +1,6 @@
 import os
-from pipeline_config import PipelineConfig
-from cli_args import build_parser
+from src.eureka_jwst_parallel.pipeline_config import PipelineConfig
+from src.eureka_jwst_parallel.cli_args import build_parser
 
 
 def update_CRDS():
