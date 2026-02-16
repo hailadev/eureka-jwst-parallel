@@ -19,4 +19,10 @@ def build_parser():
         action = 'store_true',
         help = "Use this flag to enable high cadence processing"
     )
+    parser.add_argument(
+        '--update_CRDS',
+        '-crds',
+        action = 'store_true',
+        help = "Use this flag to update CRDS server URL and context."
+    )
     return parser

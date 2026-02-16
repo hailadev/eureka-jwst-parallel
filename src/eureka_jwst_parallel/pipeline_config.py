@@ -1,4 +1,5 @@
 import shutil
+import os
 from pathlib import Path
 from astropy.io import fits
 from platformdirs import user_data_dir
@@ -8,6 +9,7 @@ class PipelineConfig:
     def __init__(self, args):
         self.uncal_data_dir = Path(args.uncal_data_dir)
         self.high_cadence = args.high_cadence
+        self.update_CRDS = args.update_CRDS
         
         # Default settings
         self.run_from_uncal = True
@@ -23,7 +25,7 @@ class PipelineConfig:
         """
         with fits.open(self.uncal_data_dir) as file:
             header = file[0].header
-        self.instrument = header.get('INSTRUME', 'Unknown')
+        self.instrument = header.get('GRATING', 'Unknown')
         self.obj_name = header.get('TARGPROP', 'Unknown')
     
     @property
@@ -49,14 +51,24 @@ class PipelineConfig:
             self.pixels_to_mask = None
             self.n_subints = None
     
+    @property
+    def update_CRDS():
+        """
+        Updates CRDS server URL and context.
+        """
+        server_url = input("Enter the CRDS server URL: ")
+        context = input("Enter the CRDS context: ")
+        os.environ['CRDS_SERVER_URL'] = server_url
+        os.environ['CRDS_CONTEXT'] = context
+    
     def configure_directories(self):
         """
         Sets up Application Support directory for data and data analysis output.
         """
-        package_name = "eureka_jwst_parallel"
+        package_name = 'eureka_jwst_parallel'
         base_dir = Path(user_data_dir(package_name))
         
-        data_dir = base_dir / "data"
+        data_dir = base_dir / 'data'
         data_dir.mkdir(parents=True, exist_ok=True)
         self.data_dir = data_dir
 
@@ -64,7 +76,7 @@ class PipelineConfig:
         dest = data_dir / src.name
         shutil.copy2(src, dest) # Copy2 preserves file metadata
         
-        output_dir = base_dir / "output"
+        output_dir = base_dir / 'output'
         output_dir.mkdir(parents=True, exist_ok=True)
         self.output_dir = output_dir
 
