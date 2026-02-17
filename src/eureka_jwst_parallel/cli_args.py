@@ -17,12 +17,14 @@ def build_parser():
         '--high_cadence',
         '-hc',
         action = 'store_true',
+        dest = 'hc_flag',
         help = "Use this flag to enable high cadence processing"
     )
     parser.add_argument(
-        '--update_CRDS',
+        '--update_crds',
         '-crds',
         action = 'store_true',
+        dest = 'crds_flag',
         help = "Use this flag to update CRDS server URL and context."
     )
     return parser

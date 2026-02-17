@@ -8,8 +8,8 @@ from platformdirs import user_data_dir
 class PipelineConfig:
     def __init__(self, args):
         self.uncal_data_dir = Path(args.uncal_data_dir)
-        self.high_cadence = args.high_cadence
-        self.update_CRDS = args.update_CRDS
+        self.hc_flag = args.hc_flag
+        self.crds_flag = args.crds_flag
         
         # Default settings
         self.run_from_uncal = True
@@ -28,7 +28,6 @@ class PipelineConfig:
         self.instrument = header.get('GRATING', 'Unknown')
         self.obj_name = header.get('TARGPROP', 'Unknown')
     
-    @property
     def high_cadence_settings(self):
         """
         Defines specific settings for high_cadence processing.
@@ -51,8 +50,7 @@ class PipelineConfig:
             self.pixels_to_mask = None
             self.n_subints = None
     
-    @property
-    def update_CRDS():
+    def update_crds(self):
         """
         Updates CRDS server URL and context.
         """
@@ -90,7 +88,7 @@ class PipelineConfig:
         print(f"""
         Object Name:                {self.obj_name}
         Instrument:                 {self.instrument}
-        High cadence:               {self.high_cadence}
+        High cadence:               {self.hc_flag}
 
         Pipeline Steps:
         Run from uncal:           {self.run_from_uncal}

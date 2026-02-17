@@ -6,8 +6,8 @@ def main():
     parser = build_parser()
     args = parser.parse_args()
     pipeline = PipelineConfig(args)
-    if pipeline.update_CRDS: pipeline.update_CRDS()
-    if pipeline.high_cadence: pipeline.high_cadence_settings()
+    if pipeline.crds_flag: pipeline.update_crds()
+    if pipeline.hc_flag: pipeline.high_cadence_settings()
     pipeline.configure_directories()
     pipeline.print_pipeline_setup()
 
