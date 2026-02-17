@@ -10,7 +10,7 @@ def build_parser():
         prog = 'eureka_jwst_parallel',
     )
     parser.add_argument(
-        'uncal_data_dir',
+        'input_data_dir',
         help = "Path to your input data"
     )
     parser.add_argument(

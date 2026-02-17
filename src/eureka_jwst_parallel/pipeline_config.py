@@ -7,26 +7,68 @@ from platformdirs import user_data_dir
 
 class PipelineConfig:
     def __init__(self, args):
-        self.uncal_data_dir = Path(args.uncal_data_dir)
+        self.input_data_dir = Path(args.input_data_dir)
         self.hc_flag = args.hc_flag
         self.crds_flag = args.crds_flag
         
         # Default settings
-        self.run_from_uncal = True
         self.apply_custom_mask_after_S1 = True
         self.run_jwst_S2 = True
         self.run_eureka_S2_S3 = True
 
         self.read_header()
+        self.configure_directories()
+        self.file_type()
+    
+    def update_crds(self):
+        """
+        Updates CRDS server URL and context.
+        """
+        server_url = input("Enter the CRDS server URL: ")
+        context = input("Enter the CRDS context: ")
+        os.environ['CRDS_SERVER_URL'] = server_url
+        os.environ['CRDS_CONTEXT'] = context
         
     def read_header(self):
         """
         Reads .fits file to determine object name and instrument.
         """
-        with fits.open(self.uncal_data_dir) as file:
+        with fits.open(self.input_data_dir) as file:
             header = file[0].header
         self.instrument = header.get('GRATING', 'Unknown')
         self.obj_name = header.get('TARGPROP', 'Unknown')
+
+    def configure_directories(self):
+        """
+        Sets up Application Support directory for data and data analysis output.
+        """
+        package_name = 'eureka_jwst_parallel'
+        base_dir = Path(user_data_dir(package_name))
+        
+        data_dir = base_dir / 'data'
+        data_dir.mkdir(parents=True, exist_ok=True)
+        self.data_dir = data_dir
+
+        src = Path(self.input_data_dir).expanduser().resolve()
+        dest = data_dir / src.name
+        shutil.copy2(src, dest) # Copy2 preserves file metadata
+        
+        output_dir = base_dir / 'output'
+        output_dir.mkdir(parents=True, exist_ok=True)
+        self.output_dir = output_dir
+
+        self.eureka_env_name = 'Eureka_April' # Eureka conda environment
+        return
+
+    def file_type(self):
+        basename = os.path.basename(self.input_data_dir)
+        if "uncal" in basename:
+            self.run_from_uncal = True
+        elif "rateints" in basename:
+            self.run_from_uncal = False
+        else:
+            raise ValueError("Unexpected file type")
+        return
     
     def high_cadence_settings(self):
         """
@@ -49,37 +91,6 @@ class PipelineConfig:
         if self.instrument == 'G395H_nrs1' or self.instrument == 'G395H_nrs2':
             self.pixels_to_mask = None
             self.n_subints = None
-    
-    def update_crds(self):
-        """
-        Updates CRDS server URL and context.
-        """
-        server_url = input("Enter the CRDS server URL: ")
-        context = input("Enter the CRDS context: ")
-        os.environ['CRDS_SERVER_URL'] = server_url
-        os.environ['CRDS_CONTEXT'] = context
-    
-    def configure_directories(self):
-        """
-        Sets up Application Support directory for data and data analysis output.
-        """
-        package_name = 'eureka_jwst_parallel'
-        base_dir = Path(user_data_dir(package_name))
-        
-        data_dir = base_dir / 'data'
-        data_dir.mkdir(parents=True, exist_ok=True)
-        self.data_dir = data_dir
-
-        src = Path(self.uncal_data_dir).expanduser().resolve()
-        dest = data_dir / src.name
-        shutil.copy2(src, dest) # Copy2 preserves file metadata
-        
-        output_dir = base_dir / 'output'
-        output_dir.mkdir(parents=True, exist_ok=True)
-        self.output_dir = output_dir
-
-        self.eureka_env_name = 'Eureka_April' # Eureka conda environment
-        return
     
     def print_pipeline_setup(self):
         """

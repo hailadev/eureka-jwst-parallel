@@ -8,7 +8,6 @@ def main():
     pipeline = PipelineConfig(args)
     if pipeline.crds_flag: pipeline.update_crds()
     if pipeline.hc_flag: pipeline.high_cadence_settings()
-    pipeline.configure_directories()
     pipeline.print_pipeline_setup()
 
 
