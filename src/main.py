@@ -1,4 +1,14 @@
+import os
 from pathlib import Path
+
+
+# CRDS variables must be set before eureka module imports
+os.environ["CRDS_SERVER_URL"] = "https://jwst-crds.stsci.edu"
+os.environ["CRDS_CONTEXT"] = "jwst-operational"
+os.environ["CRDS_PATH"] = str(Path("~/crds_cache").expanduser())
+os.environ["CRDS_MODE"] = "auto"
+
+
 from src.cli_args import build_parser
 from src.pipeline_config import PipelineConfig
 from src.format_ecf import update_ecf

@@ -43,10 +43,6 @@ def run_eureka_S1(
         ecf_path (Path): Path to the folder where .ecf files are stored
         high_cadence (bool): Flag to toggle on/off high cadence analysis        
     """
-    print("filename is ", filename)
-    print("object is ", object)
-    print("instrument is ", instrument)
-
     directories_to_backup = ['Stage1']
     backup_dir = os.path.join(output_dir, 'eureka_data_backup')
     os.chdir(output_dir)
