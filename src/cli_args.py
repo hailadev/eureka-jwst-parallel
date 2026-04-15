@@ -10,10 +10,6 @@ def build_parser():
         prog = 'eureka_jwst_parallel',
     )
     parser.add_argument(
-        'input_data_dir',
-        help = "Path to your input data"
-    )
-    parser.add_argument(
         '--high_cadence',
         '-hc',
         action = 'store_true',

@@ -11,7 +11,7 @@ def update_ecf(ecf_path: Path, yaml_path: Path):
     
     Args:
         ecf_path (Path): Location of the .ecf file for the current Eureka pipeline stage
-        yaml_path (Path): Location where the project's overarching configuration file is kept.
+        yaml_path (Path): Location where the project's overarching configuration file is kept
     """
     with open(yaml_path) as f:
         config = yaml.safe_load(f)
@@ -30,7 +30,10 @@ def update_ecf(ecf_path: Path, yaml_path: Path):
         key = stripped.split()[0]
 
         # Updates key/value pairs specified in config
-        if key in config['ecf_settings']:
+        if key in config['paths']:
+            logger.info(f"Inputing S1 ECF value for {key}")
+            updated_lines.append(f"{key}\t{config['paths'][key]}\n")
+        elif key in config['ecf_settings']:
             logger.info(f"Inputing S1 ECF value for {key}")
             updated_lines.append(f"{key}\t{config['ecf_settings'][key]}\n")
         else:

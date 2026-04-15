@@ -8,7 +8,6 @@ CONFIG_PATH = Path(__file__).parents[1] / 'config.yaml'
 
 class PipelineConfig:
     def __init__(self, args):
-        self.filename = args.input_data_dir
         self.hc_flag = args.hc_flag
         self.crds_flag = args.crds_flag
         
@@ -18,6 +17,7 @@ class PipelineConfig:
         self.run_eureka_S2_S3 = True
 
         self._load_config()
+        self.get_filename()
         self.read_header()
         # self.configure_directories()
         self.file_type()
@@ -27,25 +27,22 @@ class PipelineConfig:
             cfg = yaml.safe_load(f)
         paths = cfg['paths']
         self.path_to_config = CONFIG_PATH
-        self.input_dir = self._validate_path(Path(paths['input_dir']).expanduser(), 'input_dir')
-        self.output_dir = self._validate_path(Path(paths['output_dir']).expanduser(), 'output_dir')
-        self.ecf_dir = self._validate_path(Path(paths['ecf_dir']).expanduser(), 'ecf_dir')
+        self.input_dir = self._validate_path(Path(paths['topdir']) / paths['inputdir'].lstrip('/'), 'input_dir')
+        self.output_dir = self._validate_path(Path(paths['topdir']) / paths['outputdir'].lstrip('/'), 'output_dir')
+        self.ecf_dir = self._validate_path(Path(paths['ecf_dir']), 'ecf_dir')
 
     def _validate_path(self, path: Path, name: str):
         resolved = path.resolve()
         if not resolved.exists():
             raise ValueError(f'{name} does not exist: {resolved}')
         return resolved
-    
-    def update_crds(self):
-        """
-        Updates CRDS server URL and context.
-        """
-        server_url = input("Enter the CRDS server URL: ")
-        context = input("Enter the CRDS context: ")
-        os.environ['CRDS_SERVER_URL'] = server_url
-        os.environ['CRDS_CONTEXT'] = context
-        
+
+    def get_filename(self):
+        files = [f for f in os.listdir(self.input_dir) if os.path.isfile(os.path.join(self.input_dir, f))]
+        if len(files) > 1:
+            raise ValueError(f"Expected only one file in {self.input_dir}, but found {len(files)} files.")
+        self.filename = self.input_dir / files[0]
+
     def read_header(self):
         """
         Reads .fits file to determine object name and instrument.
@@ -54,19 +51,6 @@ class PipelineConfig:
             header = file[0].header
         self.instrument = header.get('GRATING', 'Unknown')
         self.obj_name = header.get('TARGPROP', 'Unknown')
-
-    # def configure_directories(self):
-    #     """
-    #     Sets up Application Support directory for data and data analysis output.
-    #     """
-    #     self.input_dir.mkdir(parents=True, exist_ok=True)
-    #     self.output_dir.mkdir(parents=True, exist_ok=True)
-    #     self.ecf_dir.mkdir(parents=True, exist_ok=True)
-
-    #     # src = self.input_dir.expanduser().resolve()
-    #     # dst = self.input_dir / self.filename
-    #     # shutil.copy2(src, dst)
-
 
     def file_type(self):
         basename = os.path.basename(self.filename)

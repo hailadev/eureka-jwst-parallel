@@ -1,0 +1,8 @@
+paths:
+  topdir: /path/to/top/dir
+  inputdir: /path/to/input/dir
+  outputdir: /path/to/output/dir
+  ecf_dir: /path/to/ecf/dir
+
+ecf_settings:
+  example_key: example_value
