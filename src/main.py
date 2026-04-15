@@ -30,7 +30,7 @@ def main():
     if pipeline.crds_flag: pipeline.update_crds()
     # if pipeline.hc_flag: pipeline.high_cadence_settings()
     # pipeline.print_pipeline_setup()
-    
+
     if pipeline.run_from_uncal is True:
         S1_ecf = extract_ecf_stage(pipeline.ecf_dir, "S1")
         update_ecf(S1_ecf, pipeline.path_to_config)
@@ -41,7 +41,8 @@ def main():
             filename = pipeline.filename,
             object = pipeline.obj_name,
             instrument = pipeline.instrument,
-            ecf_path=pipeline.ecf_dir,
+            ecf_path = pipeline.ecf_dir,
+            custom_mask_values = pipeline.pixels_to_mask['S1'],
             high_cadence = pipeline.hc_flag
         )
     else:

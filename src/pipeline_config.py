@@ -30,6 +30,7 @@ class PipelineConfig:
         self.input_dir = self._validate_path(Path(paths['topdir']) / paths['inputdir'].lstrip('/'), 'input_dir')
         self.output_dir = self._validate_path(Path(paths['topdir']) / paths['outputdir'].lstrip('/'), 'output_dir')
         self.ecf_dir = self._validate_path(Path(paths['ecf_dir']), 'ecf_dir')
+        self.pixels_to_mask = cfg['custom_mask']
 
     def _validate_path(self, path: Path, name: str):
         resolved = path.resolve()

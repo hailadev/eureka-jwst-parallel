@@ -6,3 +6,12 @@ paths:
 
 ecf_settings:
   example_key: example_value
+
+custom_mask:
+  S1:
+  - [x, y]
+  S2:
+  - [x, y]
+  - [x2, y2]
+  S3:
+  - []
