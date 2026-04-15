@@ -1,13 +1,14 @@
-import shutil
 import os
-from pathlib import Path
-from astropy.io import fits
-from platformdirs import user_data_dir
+import yaml
 
+from astropy.io import fits
+from pathlib import Path
+
+CONFIG_PATH = Path(__file__).parents[1] / 'config.yaml'
 
 class PipelineConfig:
     def __init__(self, args):
-        self.input_data_dir = Path(args.input_data_dir)
+        self.filename = args.input_data_dir
         self.hc_flag = args.hc_flag
         self.crds_flag = args.crds_flag
         
@@ -16,9 +17,25 @@ class PipelineConfig:
         self.run_jwst_S2 = True
         self.run_eureka_S2_S3 = True
 
+        self._load_config()
         self.read_header()
-        self.configure_directories()
+        # self.configure_directories()
         self.file_type()
+    
+    def _load_config(self):
+        with open(CONFIG_PATH) as f:
+            cfg = yaml.safe_load(f)
+        paths = cfg['paths']
+        self.path_to_config = CONFIG_PATH
+        self.input_dir = self._validate_path(Path(paths['input_dir']).expanduser(), 'input_dir')
+        self.output_dir = self._validate_path(Path(paths['output_dir']).expanduser(), 'output_dir')
+        self.ecf_dir = self._validate_path(Path(paths['ecf_dir']).expanduser(), 'ecf_dir')
+
+    def _validate_path(self, path: Path, name: str):
+        resolved = path.resolve()
+        if not resolved.exists():
+            raise ValueError(f'{name} does not exist: {resolved}')
+        return resolved
     
     def update_crds(self):
         """
@@ -33,39 +50,30 @@ class PipelineConfig:
         """
         Reads .fits file to determine object name and instrument.
         """
-        with fits.open(self.input_data_dir) as file:
+        with fits.open(self.filename) as file:
             header = file[0].header
         self.instrument = header.get('GRATING', 'Unknown')
         self.obj_name = header.get('TARGPROP', 'Unknown')
 
-    def configure_directories(self):
-        """
-        Sets up Application Support directory for data and data analysis output.
-        """
-        package_name = 'eureka_jwst_parallel'
-        base_dir = Path(user_data_dir(package_name))
-        
-        data_dir = base_dir / 'data'
-        data_dir.mkdir(parents=True, exist_ok=True)
-        self.data_dir = data_dir
+    # def configure_directories(self):
+    #     """
+    #     Sets up Application Support directory for data and data analysis output.
+    #     """
+    #     self.input_dir.mkdir(parents=True, exist_ok=True)
+    #     self.output_dir.mkdir(parents=True, exist_ok=True)
+    #     self.ecf_dir.mkdir(parents=True, exist_ok=True)
 
-        src = Path(self.input_data_dir).expanduser().resolve()
-        dest = data_dir / src.name
-        shutil.copy2(src, dest) # Copy2 preserves file metadata
-        
-        output_dir = base_dir / 'output'
-        output_dir.mkdir(parents=True, exist_ok=True)
-        self.output_dir = output_dir
+    #     # src = self.input_dir.expanduser().resolve()
+    #     # dst = self.input_dir / self.filename
+    #     # shutil.copy2(src, dst)
 
-        self.eureka_env_name = 'Eureka_April' # Eureka conda environment
-        return
 
     def file_type(self):
-        basename = os.path.basename(self.input_data_dir)
+        basename = os.path.basename(self.filename)
         if "uncal" in basename:
-            self.run_from_uncal = True
-        elif "rateints" in basename:
-            self.run_from_uncal = False
+            self.run_from_uncal = True # Defaults to S1
+        elif "rate" or "rateints" in basename:
+            self.run_from_uncal = False # Defaults to S2
         else:
             raise ValueError("Unexpected file type")
         return
@@ -107,6 +115,6 @@ class PipelineConfig:
         Run jwst S2:              {self.run_jwst_S2}
         Run Eureka:               {self.run_eureka_S2_S3}
 
-        Input data directory:       {self.data_dir}
+        Input data directory:       {self.input_dir}
         Eureka output directory:    {self.output_dir}
         """)
