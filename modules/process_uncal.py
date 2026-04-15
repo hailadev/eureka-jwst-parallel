@@ -43,17 +43,13 @@ def run_eureka_S1(
         ecf_path (Path): Path to the folder where .ecf files are stored
         high_cadence (bool): Flag to toggle on/off high cadence analysis        
     """
-    directories_to_backup = ['Stage1']
-    backup_dir = os.path.join(output_dir, 'eureka_data_backup')
-    os.chdir(output_dir)
-    backup_directory(backup_dir, directories_to_backup, output_dir)
+    backup_directory(output_dir)
 
     # TO-DO: Add in option for high cadence logic here
 
     # Native cadence logic below
     logger.info("Running Eureka Stage 1")
     eventlabel = object + '_' + instrument
-    print("event label is: ", eventlabel)
 
     meta = s1.rampfitJWST(eventlabel, ecf_path=ecf_path)
     with open(meta.s1_logname) as f:
@@ -68,33 +64,26 @@ def run_eureka_S1(
             break
 
 
-def backup_directory(backup_dir, directories_to_backup, output_dir):
+def backup_directory(output_dir):
     """
     Saves the results from past runs.
 
     Args:
-        backup_dir
-        directories_to_backup
-        output_dir (Path): Location to store the backup
+        output_dir (Path): Location where Eureka stores outputted results
     """
+    backup_dir = os.path.join(output_dir, 'eureka_data_backup')
     if not os.path.exists(backup_dir):
         os.makedirs(backup_dir)
         logger.info(f"Created backup directory: {backup_dir}")
     timestamp = datetime.now().strftime('%Y-%m-%d_%H%M')
 
-    for dir_name in directories_to_backup:
-        dir_path = os.path.join(output_dir, dir_name)
-        if os.path.exists(dir_path):
-            # Define the new backup subdirectory name with the timestamp
-            dest_path = os.path.join(backup_dir, f'{dir_name}_{timestamp}')
-            os.makedirs(dest_path, exist_ok=True)
-
-            for item in os.listdir(dir_path):
-                shutil.move(os.path.join(dir_path, item), dest_path)
-            logger.info(f"Moved contents of {dir_name} to {dest_path}")
-
-            # Delete the original directory after moving its contents
-            shutil.rmtree(dir_path)
-            logger.info(f"Deleted original directory: {dir_path}")
-        else:
-            logger.info(f"Directory does not exist: {dir_path}. No backup required.")
+    for dir in output_dir.iterdir():
+        if "DS" in dir.name or "data_backup" in dir.name:
+            continue
+        if not dir.exists():
+            logger.info(f"Directory does not exist: {dir}. No backup required.")
+            continue
+        
+        dest_path = os.path.join(backup_dir, f'{dir.name}_{timestamp}')
+        shutil.move(str(dir), str(dest_path))
+        logger.info(f"Moved contents of {dir} to {dest_path}")
