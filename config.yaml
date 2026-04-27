@@ -4,8 +4,16 @@ paths:
   outputdir: /path/to/output/dir
   ecf_dir: /path/to/ecf/dir
 
+crds_settings:
+  server_url: https://jwst-crds.stsci.edu
+  context: jwst-operational
+  path: ~/crds_cache
+  mode: auto
+
 ecf_settings:
-  example_key: example_value
+  S1:
+    example_key: example_value
+  S2:
 
 custom_mask:
   S1:
