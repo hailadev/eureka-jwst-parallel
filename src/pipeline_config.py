@@ -9,7 +9,6 @@ CONFIG_PATH = Path(__file__).parents[1] / 'config.yaml'
 class PipelineConfig:
     def __init__(self, args):
         self.hc_flag = args.hc_flag
-        self.crds_flag = args.crds_flag
         
         # Default settings
         self.apply_custom_mask_after_S1 = True
@@ -27,10 +26,17 @@ class PipelineConfig:
             cfg = yaml.safe_load(f)
         paths = cfg['paths']
         self.path_to_config = CONFIG_PATH
-        self.input_dir = self._validate_path(Path(paths['topdir']) / paths['inputdir'].lstrip('/'), 'input_dir')
-        self.output_dir = self._validate_path(Path(paths['topdir']) / paths['outputdir'].lstrip('/'), 'output_dir')
-        self.ecf_dir = self._validate_path(Path(paths['ecf_dir']), 'ecf_dir')
         self.pixels_to_mask = cfg['custom_mask']
+
+        # Input and ECF dirs must exist
+        self.input_dir = self._validate_path(Path(paths['topdir']) / paths['inputdir'].lstrip('/'), 'input_dir')
+        self.ecf_dir = self._validate_path(Path(paths['ecf_dir']), 'ecf_dir')
+
+        # Create output directory if it doesn't already exist
+        if 'outputdir' not in paths['outputdir']:
+            raise ValueError("The output directory must be specified in config.yaml.")
+        self.output_dir = Path(paths['topdir']) / paths['outputdir'].lstrip('/')
+        self.output_dir.mkdir(parents=True, exist_ok=True)
 
     def _validate_path(self, path: Path, name: str):
         resolved = path.resolve()
@@ -63,27 +69,27 @@ class PipelineConfig:
             raise ValueError("Unexpected file type")
         return
     
-    def high_cadence_settings(self):
-        """
-        Defines specific settings for high_cadence processing.
-        """
-        if self.instrument == 'PRISM':
-            self.pixels_to_mask = None
-            self.n_subints = None
-            self.high_cadence_integrations_list = None
-            self.high_cadence_exposure = None
+    # def high_cadence_settings(self):
+    #     """
+    #     Defines specific settings for high_cadence processing.
+    #     """
+    #     if self.instrument == 'PRISM':
+    #         self.pixels_to_mask = None
+    #         self.n_subints = None
+    #         self.high_cadence_integrations_list = None
+    #         self.high_cadence_exposure = None
             
-            if self.obj_name == 'ZTFJ0038+2030':
-                self.pixels_to_mask = [(488,31), (380, 29)]
-                self.n_subints = 2
-                self.high_cadence_exposure = 1 # The second exposure
+    #         if self.obj_name == 'ZTFJ0038+2030':
+    #             self.pixels_to_mask = [(488,31), (380, 29)]
+    #             self.n_subints = 2
+    #             self.high_cadence_exposure = 1 # The second exposure
 
-            elif self.obj_name == 'WD1032' or self.obj_name == 'SDSS1411':
-                self.n_subints = 2
+    #         elif self.obj_name == 'WD1032' or self.obj_name == 'SDSS1411':
+    #             self.n_subints = 2
         
-        if self.instrument == 'G395H_nrs1' or self.instrument == 'G395H_nrs2':
-            self.pixels_to_mask = None
-            self.n_subints = None
+    #     if self.instrument == 'G395H_nrs1' or self.instrument == 'G395H_nrs2':
+    #         self.pixels_to_mask = None
+    #         self.n_subints = None
     
     def print_pipeline_setup(self):
         """

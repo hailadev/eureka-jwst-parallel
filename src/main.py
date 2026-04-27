@@ -1,12 +1,23 @@
-import os
+import os, yaml
 from pathlib import Path
 
 
-# CRDS variables must be set before eureka module imports
-os.environ["CRDS_SERVER_URL"] = "https://jwst-crds.stsci.edu"
-os.environ["CRDS_CONTEXT"] = "jwst-operational"
-os.environ["CRDS_PATH"] = str(Path("~/crds_cache").expanduser())
-os.environ["CRDS_MODE"] = "auto"
+# CRDS variables must be set before eureka module import
+def load_config(config_path):
+    with open(config_path, "r") as f:
+        return yaml.safe_load(f)
+
+config = load_config("config.yaml")
+crds = config.get("crds_settings", {})
+required = ["server_url", "context", "path"]
+missing = [k for k in required if not crds.get(k)]
+if missing:
+    raise ValueError(f"Missing required CRDS config keys: {missing}")
+
+os.environ["CRDS_SERVER_URL"] = crds["server_url"]
+os.environ["CRDS_CONTEXT"] = crds["context"]
+os.environ["CRDS_PATH"] = str(Path(crds["path"]).expanduser())
+os.environ["CRDS_MODE"] = crds.get("mode", "auto")
 
 
 from src.cli_args import build_parser
