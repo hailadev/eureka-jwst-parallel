@@ -7,10 +7,11 @@ import os
 from pathlib import Path
 from typing import Optional
 
-import eureka.S1_detector_processing.s1_process as s1
 import eureka.lib.plots
+import eureka.S1_detector_processing.s1_process as s1
 from loguru import logger
-from modules.custom_mask import create_custom_mask, apply_custom_mask
+
+from modules.custom_mask import apply_custom_mask, create_custom_mask
 
 # Set usetex=True if you have LaTeX installed
 eureka.lib.plots.set_rc(style='eureka', usetex=False, filetype='.png')

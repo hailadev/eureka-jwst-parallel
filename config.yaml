@@ -1,3 +1,9 @@
+high_cadence: false
+apply_custom_mask_after_S1: true
+run_jwst_S2: true
+run_eureka_S2: true
+run_eureka_S3: true
+
 paths:
   topdir: /path/to/top/dir
   inputdir: /path/to/input/dir

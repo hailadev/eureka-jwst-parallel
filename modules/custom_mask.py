@@ -3,13 +3,14 @@ This module creates a custom mask accounting for NaN pixels and manually specifi
 It also implements a process by which to apply the mask to an existing fits file.
 """
 
-import numpy as np
-from astropy.io import fits
-import matplotlib.pyplot as plt
 import os
 import time
-from loguru import logger
 from pathlib import Path
+
+import matplotlib.pyplot as plt
+import numpy as np
+from astropy.io import fits
+from loguru import logger
 
 
 def create_custom_mask(rateints_file: Path, output_file: Path, additional_pixels: list[list] = []):

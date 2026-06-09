@@ -1,24 +1,16 @@
 import os
-import yaml
-
-from astropy.io import fits
 from pathlib import Path
+
+import yaml
+from astropy.io import fits
 
 CONFIG_PATH = Path(__file__).parents[1] / 'config.yaml'
 
 class PipelineConfig:
-    def __init__(self, args):
-        self.hc_flag = args.hc_flag
-        
-        # Default settings
-        self.apply_custom_mask_after_S1 = True
-        self.run_jwst_S2 = True
-        self.run_eureka_S2_S3 = True
-
+    def __init__(self):
         self._load_config()
         self.get_filename()
         self.read_header()
-        # self.configure_directories()
         self.file_type()
     
     def _load_config(self):
@@ -26,6 +18,11 @@ class PipelineConfig:
             cfg = yaml.safe_load(f)
         paths = cfg['paths']
         self.path_to_config = CONFIG_PATH
+        self.hc_flag = cfg.get('high_cadence', False)
+        self.apply_custom_mask_after_S1 = cfg.get('apply_custom_mask_after_S1', True)
+        self.run_jwst_S2 = cfg.get('run_jwst_S2', True)
+        self.run_eureka_S2 = cfg.get('run_eureka_S2', True)
+        self.run_eureka_S3 = cfg.get('run_eureka_S3', True)
         self.pixels_to_mask = cfg['custom_mask']
 
         # Input and ECF dirs must exist
@@ -33,10 +30,28 @@ class PipelineConfig:
         self.ecf_dir = self._validate_path(Path(paths['ecf_dir']), 'ecf_dir')
 
         # Create output directory if it doesn't already exist
-        if 'outputdir' not in paths['outputdir']:
+        if 'outputdir' not in paths:
             raise ValueError("The output directory must be specified in config.yaml.")
         self.output_dir = Path(paths['topdir']) / paths['outputdir'].lstrip('/')
         self.output_dir.mkdir(parents=True, exist_ok=True)
+
+        # Create subdirectories to separate Eureka and JWST pipeline output data
+        run_dir = self._next_run_dir()
+        self.eureka_output_dir = run_dir / 'eureka'
+        self.eureka_output_dir.mkdir(parents=True, exist_ok=True)
+        self.jwst_s2_output_dir = run_dir / 'jwst_S2'
+        self.jwst_s2_output_dir.mkdir(parents=True, exist_ok=True)
+    
+    def _next_run_dir(self) -> Path:
+        existing = [
+            d for d in self.output_dir.iterdir()
+            if d.is_dir() and d.name.startswith('run')
+            and d.name[3:].isdigit()
+        ]
+        next_n = max((int(d.name[3:]) for d in existing), default=0) + 1
+        run_dir = self.output_dir / f'run{next_n}'
+        run_dir.mkdir()
+        return run_dir
 
     def _validate_path(self, path: Path, name: str):
         resolved = path.resolve()
@@ -68,28 +83,6 @@ class PipelineConfig:
         else:
             raise ValueError("Unexpected file type")
         return
-    
-    # def high_cadence_settings(self):
-    #     """
-    #     Defines specific settings for high_cadence processing.
-    #     """
-    #     if self.instrument == 'PRISM':
-    #         self.pixels_to_mask = None
-    #         self.n_subints = None
-    #         self.high_cadence_integrations_list = None
-    #         self.high_cadence_exposure = None
-            
-    #         if self.obj_name == 'ZTFJ0038+2030':
-    #             self.pixels_to_mask = [(488,31), (380, 29)]
-    #             self.n_subints = 2
-    #             self.high_cadence_exposure = 1 # The second exposure
-
-    #         elif self.obj_name == 'WD1032' or self.obj_name == 'SDSS1411':
-    #             self.n_subints = 2
-        
-    #     if self.instrument == 'G395H_nrs1' or self.instrument == 'G395H_nrs2':
-    #         self.pixels_to_mask = None
-    #         self.n_subints = None
     
     def print_pipeline_setup(self):
         """

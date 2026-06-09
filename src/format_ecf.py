@@ -4,7 +4,7 @@ import yaml
 from loguru import logger
 
 
-def update_ecf(ecf_path: Path, yaml_path: Path):
+def update_ecf(ecf_path: Path, yaml_path: Path, eureka_output_dir: Path, inputdir: Path = None):
     """
     Rewrites .ecf file, inserting manually defined values specified in the project's configuration file.
     Permits consolidated adjustments to .ecf files without more manual intervention.
@@ -17,6 +17,8 @@ def update_ecf(ecf_path: Path, yaml_path: Path):
         config = yaml.safe_load(f)
     with open(ecf_path) as f:
         lines = f.readlines()
+    
+    topdir = Path(config['paths']['topdir'])
 
     updated_lines = []
     for line in lines:
@@ -31,8 +33,15 @@ def update_ecf(ecf_path: Path, yaml_path: Path):
 
         # Updates key/value pairs specified in config
         if key in config['paths']:
+            value = config['paths'][key]
+            if key == 'outputdir':
+                value = str(eureka_output_dir.relative_to(topdir))
+            elif key == 'inputdir' and inputdir is not None:
+                value = str(inputdir)
+            else:
+                value = config['paths'][key]
             logger.info(f"Inputing S1 ECF value for {key}")
-            updated_lines.append(f"{key}\t{config['paths'][key]}\n")
+            updated_lines.append(f"{key}\t{value}\n")
         elif key in config['ecf_settings']:
             logger.info(f"Inputing S1 ECF value for {key}")
             updated_lines.append(f"{key}\t{config['ecf_settings'][key]}\n")
