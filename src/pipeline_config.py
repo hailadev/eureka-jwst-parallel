@@ -41,6 +41,8 @@ class PipelineConfig:
         self.eureka_output_dir.mkdir(parents=True, exist_ok=True)
         self.jwst_s2_output_dir = run_dir / 'jwst_S2'
         self.jwst_s2_output_dir.mkdir(parents=True, exist_ok=True)
+        self.configuration_dir = run_dir / 'configuration'
+        self.configuration_dir.mkdir(parents=True, exist_ok=True)
     
     def _next_run_dir(self) -> Path:
         existing = [

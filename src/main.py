@@ -35,6 +35,14 @@ def extract_ecf_stage(ecf_dir: Path, stage: str):
     raise FileNotFoundError(f"No file found containing '{stage}' in {ecf_dir}")
 
 
+def save_setup(configuration_dir: Path, path_to_config: Path, ecf_dir: Path):
+    os.system(f"cp {path_to_config} {configuration_dir}")
+    for file in ecf_dir.iterdir():
+        if file.is_file():
+            os.system(f"cp {file} {configuration_dir}")
+    logger.info("Saved configuration details.")
+
+
 def main():
     pipeline = PipelineConfig()
     # pipeline.print_pipeline_setup()
@@ -92,6 +100,8 @@ def main():
         run_eureka_S3(eventlabel=eventlabel, ecf_path=pipeline.ecf_dir, s2_meta=s2_meta)
     else:
         logger.info("Assuming Eureka S3 has already been run.")
+    
+    save_setup(pipeline.configuration_dir, pipeline.path_to_config, pipeline.ecf_dir)
 
 
 if __name__ == '__main__':
